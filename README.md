@@ -140,9 +140,3 @@ python3 tests/stress_test.py
   и арбитра одновременно
 
 
-
-
-
-```bash
-python tests/stress_test.py
-```

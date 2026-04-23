@@ -24,20 +24,8 @@
 ### Часть 1. Потоковая репликация и автоматический failover
 
 #### Шаг 1. Структура проекта
- .
-├── agent
-│   ├── agent.py
-│   ├── Dockerfile
-│   ├── entrypoint.sh
-│   └── requirements.txt
-├── arbiter
-│   ├── arbiter.py
-│   ├── Dockerfile
-│   └── requirements.txt
-├── docker-compose.yml
-├── README.md
-└── tests
-    └── stress_test.py
+
+<img width="244" height="280" alt="изображение" src="https://github.com/user-attachments/assets/4c6c1266-4a59-41f6-9e9e-1e82ccfc02dc" />
 
 #### Шаг 2. Запуск кластера
 

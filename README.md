@@ -141,46 +141,7 @@ python3 tests/stress_test.py
 
 
 
-  -----------------------------------
-  # pg-failover
 
-## Описание
-
-Кластер высокой доступности PostgreSQL с автоматическим переключением (failover) через координацию агентов.
-
-## Топология
-[Мастер (M)] <-- потоковая репликация --> [Реплика (S)]
-      |                                      |
-      +----------> [Арбитр (A)] <-----------+
-
-## Компоненты
-
-- **Мастер (Master)** — основной узел PostgreSQL.  
-- **Реплика (Standby)** — потоковая реплика с `synchronous_commit=on`.  
-- **Арбитр (Arbiter)** — лёгкий HTTP‑сервис без PostgreSQL, служит только для проверки доступности узлов.
-
-## Логика переключения (failover)
-
-- Если **S** теряет связь с **M**, он спрашивает у **A**: «а ты видишь **M**?»  
-  - **A** отвечает **NO** → **S** повышается до мастера.  
-  - **A** отвечает **YES** → **S** ждёт (мастер жив, проблема в сети рядом с **S**).  
-- Если **S** теряет связь и с **M**, и с **A** → **S** не повышается (предотвращение split‑brain).  
-- Если **M** теряет реплику и теряет связь с **A** → запись на **M** блокируется правилами `iptables`.
-
-## Использование
-
-```bash
-docker compose up -d
-
-# запустить нагрузочный тест
-docker compose exec master pgbench -i -U postgres postgres
-docker compose exec master pgbench -U postgres -T 60 -c 10 --host=master,standby postgres
-
-# имитировать падение мастера
-docker network disconnect pg-failover_pgnet pg-failover-master-1
-```
-
-## Часть 2 — нагрузочный тест
 
 ```bash
 python tests/stress_test.py

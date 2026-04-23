@@ -1,0 +1,62 @@
+services:
+  master:
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    environment:
+      ROLE: master
+      SELF_HOST: master
+      PARTNER_HOST: standby
+      ARBITER_HOST: arbiter
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - master_data:/var/lib/postgresql/data
+    networks:
+      - pgnet
+    ports:
+      - "5432:5432"   # postgres
+      - "8080:8080"   # agent HTTP
+    cap_add:
+      - NET_ADMIN     # for iptables
+
+  standby:
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    environment:
+      ROLE: standby
+      SELF_HOST: standby
+      PARTNER_HOST: master
+      ARBITER_HOST: arbiter
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - standby_data:/var/lib/postgresql/data
+    networks:
+      - pgnet
+    ports:
+      - "5433:5432"
+      - "8081:8080"
+    cap_add:
+      - NET_ADMIN
+    depends_on:
+      - master
+
+  arbiter:
+    build:
+      context: ./arbiter
+      dockerfile: Dockerfile
+    environment:
+      MASTER_HOST: master
+      STANDBY_HOST: standby
+    networks:
+      - pgnet
+    ports:
+      - "8082:8080"
+
+volumes:
+  master_data:
+  standby_data:
+
+networks:
+  pgnet:
+    driver: bridge

@@ -120,7 +120,6 @@ python3 tests/stress_test.py
 ![alt text](image-10.png)
 
 Всего подтверждённых строк 1818, они попали в БД
-![alt text](image-9.png)
 
 При `synchronous_commit = on` потери данных нет — тест проходит.
 При `synchronous_commit = off` тест обнаруживает потери —

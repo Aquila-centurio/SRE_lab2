@@ -169,23 +169,16 @@ def verify(host: str, port: int) -> bool:
 async def run_inserts():
     semaphore = asyncio.Semaphore(CONCURRENCY)
     tasks = [insert_row(i, semaphore) for i in range(TOTAL_INSERTS)]
-
-    failover_idx = int(TOTAL_INSERTS * FAILOVER_AT)
-    killed = False
-
-    log.info("Запускаем %d вставок (параллельность=%d)...", TOTAL_INSERTS, CONCURRENCY)
-
-    # Выполняем батчами чтобы можно было триггернуть failover в середине
-    batch_size = 1000
-    for batch_start in range(0, TOTAL_INSERTS, batch_size):
-        batch = tasks[batch_start: batch_start + batch_size]
-        await asyncio.gather(*batch)
-
-        if not killed and batch_start >= failover_idx:
-            killed = True
-            kill_master_network()
-
-    log.info("Все вставки выполнены. Подтверждено: %d", len(confirmed))
+    
+    # Запускаем разрыв сети как отдельную корутину с задержкой
+    async def delayed_kill():
+        await asyncio.sleep(5)  # через 5 секунд после старта
+        kill_master_network()
+    
+    await asyncio.gather(
+        asyncio.gather(*tasks),
+        delayed_kill()           # параллельно с вставками
+    )
 
 
 def main():

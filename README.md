@@ -33,6 +33,8 @@
 docker compose up -d
 ```
 
+docker compose logs -f
+
 ![alt text](image.png)
 
 Все три контейнера поднялись: мастер выполнил `initdb` и создал
@@ -86,6 +88,11 @@ docker exec pg-failover-standby-1 psql -U postgres -c \
 
 ![alt text](image-6.png)
 
+
+docker compose down -v
+docker compose up -d
+docker compose logs -f
+
 ---
 
 ### Часть 2. Верификация отказоустойчивости
@@ -103,18 +110,28 @@ docker exec pg-failover-standby-1 psql -U postgres -c \
 6. Все строки читаются из нового мастера
 7. Проверяется: каждая подтверждённая строка должна быть в БД
 
+
+Не забыть про venv
+
 ```bash
 python3 tests/stress_test.py
 ```
-![alt text](image-8.png)
-![alt text](image-7.png)
+![alt text](image-11.png)
+![alt text](image-10.png)
 
-Всего подтверждённых строк 6000, они попали в БД
+Всего подтверждённых строк 1818, они попали в БД
 ![alt text](image-9.png)
 
 При `synchronous_commit = on` потери данных нет — тест проходит.
 При `synchronous_commit = off` тест обнаруживает потери —
 подтверждённые транзакции могут не реплицироваться до failover.
+
+Проверка
+
+``` bash
+docker exec pg-failover-standby-1 psql -U postgres -c "SELECT COUNT(*) FROM stress_test;"
+docker exec pg-failover-standby-1 psql -U postgres -c "SELECT MAX(id) FROM stress_test;"
+```
 
 ---
 
